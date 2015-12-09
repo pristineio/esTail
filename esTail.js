@@ -14,7 +14,7 @@ var moment = require('moment')
 ** Varables
 **
 ***************************************************/
-// Display all fields default=undefined 
+// Display all fields default=undefined
 var output=[];
 var allfields;
 // Is regex flag and the REGEX expression
@@ -37,13 +37,13 @@ var searchDone=true;
 var hostportlist="localhost:9200"
 // How often to query the index
 var refreshInterval=1000;
-// Default search template (json markup) 
+// Default search template (json markup)
 var searchFilename=__dirname+"/default.search"
 // The DSL Query to Elasticsearch - I'll probably set a default so the script has no requirements to just work
 var searchTemplate = "";
 // set loglevel
 var loglevel="error"
-// This is used for the JSON Markup - I'll probably add a file option 
+// This is used for the JSON Markup - I'll probably add a file option
 var context = {
     index:"_all",
     from:"now-10m",
@@ -56,7 +56,7 @@ var context = {
 ***************************************************/
 /*******************************
 **
-** Process Command Line 
+** Process Command Line
 **
 ********************************/
 console.info("Processing Commandline arguments");
@@ -90,7 +90,7 @@ process.argv.forEach(function (val, ind, array) {
     }
     if(val.indexOf('=') >0){
         var s = val.split(/=/);
-        console.info(s[0] + ' : ' + s[1]); 
+        console.info(s[0] + ' : ' + s[1]);
         if (s[0] === "--hostport" ){
             hostportlist=s[1];
         }
@@ -109,7 +109,7 @@ process.argv.forEach(function (val, ind, array) {
 	if (s[0] === "--contextfile" ){
 	    context = s[1];
 	    if (fs.existsSync(s[1])) {
-			var searchTemplate = fs.readFileSync(s[1],'utf8'); 
+			var searchTemplate = fs.readFileSync(s[1],'utf8');
 			console.info(searchTemplate);
 	    }else{
 			console.error("file does not exist:"+s[1]);
@@ -138,7 +138,7 @@ process.argv.forEach(function (val, ind, array) {
 regex = new RegExp( regex,regexflags);
 // Load the defaultSearch
 if (fs.existsSync(searchFilename)) {
-	var searchTemplate = fs.readFileSync(searchFilename,'utf8'); 
+	var searchTemplate = fs.readFileSync(searchFilename,'utf8');
 	//console.info(searchTemplate);
 }else{
 	console.error("file does not exist:"+searchFilename);
@@ -168,8 +168,8 @@ client.ping({
     console.error('elasticsearch cluster maybe down!');
     process.exit(1);
   }else{
-    console.log('Connected to Elasticsearch cluster.')	
-  } 
+    console.log('Connected to Elasticsearch cluster.')
+  }
 });
 
 /********************************************************************************
@@ -185,22 +185,21 @@ function printOutput(){
 //	  console.log(a1-b1);
 //	  return a1-b1;
 //	});
-	console.info("INFO".yellow+" inPrintOutput length to print="+output.length); 
+	console.info("INFO".yellow+" inPrintOutput length to print="+output.length);
 	while ( output.length > 0 ) {
-		hit = output.shift();	
+		hit = output.shift();
 		console.info("===="+hit+" of "+output.length);
 		// If allfields cli option is set show all the fields not just one field
 		if ( allfields ) {
 			console.log(hit._source["@timestamp"].red+":\n".green+JSON.stringify(hit._source));
-
 		}else{
-			// If not allfields 
+			// If not allfields
 			// If rawoutput is set Pretty Print the json as output
 			if (rawoutput) {
 				console.log(JSON.stringify(hit,null,2));
 			}else{
 				//If not rawoutput print <indexed time>: <index>:message
-				console.log(hit._source["@timestamp"].red+": ".green+hit._index.green+":".green+hit._source.message)
+				console.log(hit._source["@timestamp"].red+": ".green/*+hit._index.green+":".green*/+hit._source.message)
 			}
 
 		}
@@ -208,7 +207,7 @@ function printOutput(){
 		if ( regex ) {
 			var result = hit._source.message.match(regex);
 			if ( result  ){
-				console.log("\tregex: ".red+JSON.stringify(result).yellow);	
+				console.log("\tregex: ".red+JSON.stringify(result).yellow);
 			}
 		}
 		// Set the time of the last message timestamp retrieved so we don't requery the same message
@@ -222,7 +221,7 @@ function doSearch(){
 		return;
 	}
 	// convert the Template to a valid search
-	var search = markupjs.up(searchTemplate,context); 
+	var search = markupjs.up(searchTemplate,context);
 	// Execute the Search
 	client.search( JSON.parse(search) , ph = function printHits(error, response) {
 	  // Loop over the events
@@ -238,7 +237,7 @@ function doSearch(){
 	  });
 	  // If the retrieved docements equals the count then we are done
 	  printOutput()
-	  if ( output.length >= response.hits.total ){ 
+	  if ( output.length >= response.hits.total ){
 		  searchDone=true;
 		  console.info("Search complete".blue)
 		  return;
