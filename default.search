@@ -16,35 +16,34 @@
           }
         }
       ],
-"must_not": [
-{
-"constant_score": {
-"filter": {
-"missing": {
-"field": "message"
-}
-}
-}
-}
-,
-{
-"constant_score": {
-"filter": {
-"missing": {
-"field": "@timestamp"
-}
-}
-}
-}
-],
+      "must_not": [
+        {
+          "constant_score": {
+            "filter": {
+              "missing": {
+                "field": "message"
+              }
+            }
+          }
+        },
+        {
+          "constant_score": {
+            "filter": {
+              "missing": {
+                "field": "@timestamp"
+              }
+            }
+          }
+        }
+      ],
       "should": []
     }
   },
-	  "sort": {
-    "@timestamp": {
-      "order": "asc"
+    "sort": {
+      "@timestamp": {
+        "order": "asc"
+      }
     }
   }
-}
 }
 
