@@ -7,7 +7,7 @@ var colour = require('colour');
 var moment = require('moment');
 var output=[];
 var allfields;
-var regex = false;
+var regex;
 var regexflags = 'gm';
 var rawoutput;
 var searchDone = true;
@@ -22,10 +22,8 @@ var context = {
   fetchsize: 300
 };
 
-console.info = function (){};
 
-console.info('Processing Commandline arguments');
-process.argv.forEach(function (val, ind, array) {
+process.argv.forEach(function(val, ind, array) {
   if(/^(-h|--help|-\?)$/.test(val)) {
     console.log(process.argv[0]+':');
     console.log('\t[--hostport = ' + hostportlist + ']');
@@ -54,17 +52,14 @@ process.argv.forEach(function (val, ind, array) {
     process.exit(1);
   }
 
-  if(val === '--allfields' ){
+  if(val === '--allfields' ) {
     allfields = true;
-    console.info('--allfields = ' + allfields);
   }
-  if(val === '--raw'){
+  if(val === '--raw') {
     rawoutput = true;
-    console.info('--raw = ' + rawoutput);
   }
   if(val.indexOf(' = ') >0) {
     var s = val.split(/=/);
-    console.info(s[0] + ' : ' + s[1]);
     if(s[0] === '--hostport') {
       hostportlist = s[1];
     }
@@ -84,26 +79,24 @@ process.argv.forEach(function (val, ind, array) {
       context = s[1];
       if(fs.existsSync(s[1])) {
         var searchTemplate = fs.readFileSync(s[1],'utf8');
-        console.info(searchTemplate);
       } else {
         console.error('file does not exist:' + s[1]);
         process.exit(2);
       }
       context = JSON.parse(context);
     }
-    if(s[0] === '--context' && s.length == 2){
+    if(s[0] === '--context' && s.length == 2) {
       context = s[1];
       context = JSON.parse(context);
     }
-    if(s[0] === '--context' && s.length > 2 ){
+    if(s[0] === '--context' && s.length > 2 ) {
       console.log(s);
       context[s[1]] = s[2];
-      console.info('context.' + s[1]+' = ' + s[2]);
     }
-    if(s[0] === '--search'){
+    if(s[0] === '--search') {
       searchFilename = s[1];
     }
-    if(s[0] === '--index'){
+    if(s[0] === '--index') {
       context.index = s[1];
     }
   }
@@ -139,11 +132,8 @@ client.ping({requestTimeout: 1000}, function(error) {
 });
 
 function printOutput() {
-	console.info('INFO'.yellow + ' inPrintOutput length to print = ' +
-    output.length);
 	while(output.length > 0) {
     hit = output.shift();
-    console.info('====' + hit + ' of ' + output.length);
 		if(allfields) {
 			console.log(hit._source['@timestamp'].red + ':\n'.green +
         JSON.stringify(hit._source));
@@ -166,32 +156,27 @@ function printOutput() {
 }
 
 function doSearch() {
-	console.info('Running search'.blue);
   if(!searchDone) {
-    console.log('Search Not Complete');
-    return;
+    return console.log('Search Not Complete');
   }
 	var search = markupjs.up(searchTemplate,context);
-	client.search(JSON.parse(search), ph = function printHits(error, response) {
+	client.search(JSON.parse(search), ph = function(error, response) {
     if(error) {
       return console.error('ERR:'.red + error);
     }
-      console.info('INFO'.yellow + 'Count = ' + response.hits.hits.length);
-      response.hits.hits.forEach(function (hit) {
-        output.push(hit);
-      });
-      printOutput();
-      if(output.length >= response.hits.total) {
-        searchDone = true;
-        console.info('Search complete'.blue);
-        return;
-      }
-      client.scroll({
-        scrollId: response._scroll_id,
-        scroll: '30s'
-      }, ph);
+    response.hits.hits.forEach(function(hit) {
+      output.push(hit);
+    });
+    printOutput();
+    if(output.length >= response.hits.total) {
+      searchDone = true;
+      return;
     }
-  );
+    client.scroll({
+      scrollId: response._scroll_id,
+      scroll: '30s'
+    }, ph);
+  });
 }
 
 setInterval(function() {
