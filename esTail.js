@@ -6,7 +6,6 @@ var markupjs = require('markup-js');
 var fs = require('fs');
 var colour = require('colour');
 var moment = require('moment');
-var output=[];
 var allfields;
 var regex;
 var regexflags = 'gm';
@@ -129,7 +128,7 @@ client.ping({requestTimeout: 1000}, function(error) {
   }
 });
 
-function printOutput() {
+function printOutput(output) {
 	while(output.length > 0) {
     var hit = output.shift();
 		if(allfields) {
@@ -139,7 +138,7 @@ function printOutput() {
 			if(rawoutput) {
 				console.log(JSON.stringify(hit, null, 2));
 			} else {
-				console.log(hit._source['@timestamp'].red + ': '.green +
+				console.log(hit._source['@timestamp'].bold + ': ' +
           hit._source.message);
 			}
 		}
@@ -163,11 +162,8 @@ function doSearch() {
     if(error) {
       return console.error('E '.red + error.message);
     }
-    response.hits.hits.forEach(function(hit) {
-      output.push(hit);
-    });
-    printOutput();
-    if(output.length >= response.hits.total) {
+    printOutput(response.hits.hits);
+    if(response.hits.hits.length >= response.hits.total) {
       searchDone = true;
       return;
     }
