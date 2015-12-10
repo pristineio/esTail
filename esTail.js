@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+'use strict';
 
 var elasticsearch = require('elasticsearch');
 var markupjs = require('markup-js');
@@ -130,7 +131,7 @@ client.ping({requestTimeout: 1000}, function(error) {
 
 function printOutput() {
 	while(output.length > 0) {
-    hit = output.shift();
+    var hit = output.shift();
 		if(allfields) {
 			console.log(hit._source['@timestamp'].red + ':\n'.green +
         JSON.stringify(hit._source));
@@ -157,6 +158,7 @@ function doSearch() {
     return console.log('Search Not Complete');
   }
 	var search = markupjs.up(searchTemplate, context);
+  var ph;
 	client.search(JSON.parse(search), ph = function(error, response) {
     if(error) {
       return console.error('E '.red + error.message);
