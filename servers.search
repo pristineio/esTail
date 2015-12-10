@@ -2,7 +2,7 @@
   "index": "{{index}}",
   "scroll": "30s",
   "search_type": "dfs_query_then_fetch",
-  "size" : {{ fetchsize }},
+  "size" : {{fetchsize}},
   "body": {
     "query": {
       "bool": {
@@ -45,9 +45,6 @@
         "should": []
       }
     },
-      "sort": [
-      { "@timestamp": { "order": "asc" }}
-    ]
+    "sort": [{"@timestamp": { "order": "asc" }}]
   }
 }
-
