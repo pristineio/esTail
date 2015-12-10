@@ -3,9 +3,6 @@
   "version": "0.8.0",
   "description": "ElasticSearch Tail",
   "main": "esTail.js",
-  "scripts": {
-    "test": "esTail.js"
-  },
   "author": "Edward Perry",
   "license": "ISC",
   "dependencies": {
@@ -14,14 +11,8 @@
     "markup-js": "^1.5.21",
     "moment": "^2.10.6"
   },
-  "devDependencies": {},
   "repository": {
     "type": "git",
-    "url": "https://github.com/eperry/esTail"
-  },
-  "keywords": [
-    "elasticsearch",
-    "elastic",
-    "tail"
-  ]
+    "url": "https://github.com/pristineio/esTail"
+  }
 }
