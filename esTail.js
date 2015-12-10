@@ -11,17 +11,17 @@ var regex;
 var regexflags = 'gm';
 var rawoutput;
 var searchDone = true;
-var hostportlist = 'localhost:9200';
+var hostportlist = 'efk.internal:9200';
 var refreshInterval = 1000;
 var searchFilename=__dirname + '/default.search';
 var searchTemplate = '';
 var loglevel = 'error';
+
 var context = {
   index:'_all',
-  from:'now-10m',
+  from:'now-1m',
   fetchsize: 300
 };
-
 
 process.argv.forEach(function(val, ind, array) {
   if(/^(-h|--help|-\?)$/.test(val)) {
@@ -104,7 +104,7 @@ process.argv.forEach(function(val, ind, array) {
 
 regex = new RegExp(regex, regexflags);
 if(fs.existsSync(searchFilename)) {
-	var searchTemplate = fs.readFileSync(searchFilename,'utf8');
+	var searchTemplate = fs.readFileSync(searchFilename, 'utf8');
 } else {
 	console.error('file does not exist:' + searchFilename);
 	process.exit(2);
@@ -114,7 +114,7 @@ var client = new elasticsearch.Client({
   host: hostportlist,
   protocol: 'http',
   index: context.index,
-  keepAlive: true ,
+  keepAlive: true,
   ignore: [404],
   log: loglevel,
   suggestCompression: true,
@@ -124,10 +124,8 @@ var client = new elasticsearch.Client({
 
 client.ping({requestTimeout: 1000}, function(error) {
   if(error) {
-    console.error('elasticsearch cluster may be down!');
+    console.error('E '.red + error.message);
     process.exit(1);
-  } else {
-    console.log('Connected to Elasticsearch cluster.');
   }
 });
 
@@ -139,7 +137,7 @@ function printOutput() {
         JSON.stringify(hit._source));
 		} else {
 			if(rawoutput) {
-				console.log(JSON.stringify(hit,null,2));
+				console.log(JSON.stringify(hit, null, 2));
 			} else {
 				console.log(hit._source['@timestamp'].red + ': '.green +
           hit._source.message);
@@ -159,10 +157,10 @@ function doSearch() {
   if(!searchDone) {
     return console.log('Search Not Complete');
   }
-	var search = markupjs.up(searchTemplate,context);
+	var search = markupjs.up(searchTemplate, context);
 	client.search(JSON.parse(search), ph = function(error, response) {
     if(error) {
-      return console.error('ERR:'.red + error);
+      return console.error('E '.red + error.message);
     }
     response.hits.hits.forEach(function(hit) {
       output.push(hit);

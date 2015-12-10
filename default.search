@@ -1,20 +1,26 @@
 {
   "index": "{{index}}",
   "scroll": "30s",
-  "search_type": "scan",
+  "search_type": "dfs_query_then_fetch",
   "size" : {{fetchsize}},
   "body": {
     "query": {
       "bool": {
         "must": [
-        {
-          "range": {
-            "@timestamp": {
-              "gt": "{{from}}",
-              "to": "now"
+          {
+            "range": {
+              "@timestamp": {
+                "gt": "{{from}}",
+                "to": "now"
+              }
+            }
+          },
+          {
+            "query_string": {
+              "query": "@log_name:{{ app }}.log",
+              "analyze_wildcard": true
             }
           }
-        }
         ],
         "must_not": [
           {
@@ -39,7 +45,6 @@
         "should": []
       }
     },
-    "sort": {"@timestamp": {"order": "asc"}}
+    "sort": [{"@timestamp": { "order": "asc" }}]
   }
 }
-
