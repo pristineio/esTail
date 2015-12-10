@@ -17,7 +17,7 @@
           },
           {
             "query_string": {
-              "query": "@log_name:{{ app }}.log",
+              "query": "@log_name:{{app}}.log",
               "analyze_wildcard": true
             }
           }

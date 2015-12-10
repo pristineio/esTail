@@ -58,7 +58,7 @@ process.argv.forEach(function(val, ind, array) {
   if(val === '--raw') {
     rawoutput = true;
   }
-  if(val.indexOf(' = ') >0) {
+  if(val.indexOf('=') > 0) {
     var s = val.split(/=/);
     if(s[0] === '--hostport') {
       hostportlist = s[1];
@@ -66,16 +66,16 @@ process.argv.forEach(function(val, ind, array) {
     if(s[0] === '--regexflags') {
       regexflags =  s[1];
     }
-   if(s[0] === '--regex') {
+    if(s[0] === '--regex') {
       regex = s[1];
-   }
-   if(s[0] === '--loglevel') {
+    }
+    if(s[0] === '--loglevel') {
       loglevel = s[1];
-   }
-   if(s[0] === '--refreshinterval' || s[0] === '-i') {
+    }
+    if(s[0] === '--refreshinterval' || s[0] === '-i') {
       refreshInterval = s[1];
-   }
-   if(s[0] === '--contextfile') {
+    }
+    if(s[0] === '--contextfile') {
       context = s[1];
       if(fs.existsSync(s[1])) {
         var searchTemplate = fs.readFileSync(s[1],'utf8');
@@ -90,7 +90,6 @@ process.argv.forEach(function(val, ind, array) {
       context = JSON.parse(context);
     }
     if(s[0] === '--context' && s.length > 2 ) {
-      console.log(s);
       context[s[1]] = s[2];
     }
     if(s[0] === '--search') {
@@ -143,12 +142,12 @@ function printOutput() {
           hit._source.message);
 			}
 		}
-		if(regex) {
-			var result = hit._source.message.match(regex);
-			if(result) {
-				console.log('\tregex: '.red + JSON.stringify(result).yellow);
-			}
-		}
+		// if(regex) {
+		// 	var result = hit._source.message.match(regex);
+		// 	if(result) {
+		// 		console.log('\tregex: '.red + JSON.stringify(result).yellow);
+		// 	}
+		// }
 		context.from = hit._source['@timestamp'];
   }
 }
