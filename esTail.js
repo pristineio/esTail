@@ -169,11 +169,11 @@ function doSearch() {
         searchDone = true;
         return;
       }
+      client.scroll({
+        scrollId: response._scroll_id,
+        scroll: '30s'
+      }, ph);
     }
-    client.scroll({
-      scrollId: response._scroll_id,
-      scroll: '30s'
-    }, ph);
   });
 }
 
