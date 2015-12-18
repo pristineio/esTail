@@ -17,9 +17,16 @@ var searchFilename=__dirname + '/default.search';
 var searchTemplate = '';
 var loglevel = 'error';
 
+
+var from = new Date(new Date() - 12*3600*1000 - 3000*60*1000)
+  .toISOString()
+  .replace('T', ' ')
+  .replace(/\.[0-9]{3}Z/, '');
+
+
 var context = {
-  index:'_all',
-  from:'now-1m',
+  index: '_all',
+  from: new Date(new Date() - 5*refreshInterval).toISOString(), //'now-1m',
   fetchsize: 300
 };
 
@@ -121,7 +128,7 @@ var client = new elasticsearch.Client({
   sniffInterval: 60000
 });
 
-client.ping({requestTimeout: 1000}, function(error) {
+client.ping({requestTimeout: 5000}, function(error) {
   if(error) {
     console.error('E '.red + error.message);
     process.exit(1);
@@ -138,16 +145,10 @@ function printOutput(output) {
 			if(rawoutput) {
 				console.log(JSON.stringify(hit, null, 2));
 			} else {
-				console.log(hit._source['@timestamp'].bold + ': ' +
+				console.log(hit._source['@timestamp'].bold.green + ': ' +
           hit._source.message);
 			}
 		}
-		// if(regex) {
-		// 	var result = hit._source.message.match(regex);
-		// 	if(result) {
-		// 		console.log('\tregex: '.red + JSON.stringify(result).yellow);
-		// 	}
-		// }
 		context.from = hit._source['@timestamp'];
   }
 }
@@ -160,12 +161,14 @@ function doSearch() {
   var ph;
 	client.search(JSON.parse(search), ph = function(error, response) {
     if(error) {
-      return console.error('E '.red + error.message);
+      // return console.error('E '.red + error.message);
     }
-    printOutput(response.hits.hits);
-    if(response.hits.hits.length >= response.hits.total) {
-      searchDone = true;
-      return;
+    if(response.hits && response.hits.hits) {
+      printOutput(response.hits.hits);
+      if(response.hits.hits.length >= response.hits.total) {
+        searchDone = true;
+        return;
+      }
     }
     client.scroll({
       scrollId: response._scroll_id,
