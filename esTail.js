@@ -16,6 +16,30 @@ var searchFilename=__dirname + '/default.search';
 var searchTemplate = '';
 var loglevel = 'error';
 
+function RingBuffer() {
+  this.buffer = {};
+  this.maxLength = 50;
+}
+
+RingBuffer.prototype.push = function(x) {
+  if(Object.keys(this.buffer).length >= this.maxLength) {
+    delete this.buffer[Object.keys(this.buffer)[0]];
+  }
+  if(!(x in this.buffer)) {
+    this.buffer[x] = true;
+  }
+};
+
+RingBuffer.prototype.print = function() {
+  Object.keys(this.buffer).forEach(function(x) {
+    console.log(x);
+  });
+  this.buffer = {};
+};
+
+var outputBuffer = new RingBuffer();
+
+
 var context = {
   index: '_all',
   from: new Date(new Date() - 3*refreshInterval).toISOString(), //'now-1m',
@@ -115,24 +139,30 @@ client.ping({requestTimeout: 5000}, function(error) {
 function printOutput(output) {
 	while(output.length > 0) {
     var hit = output.shift();
+    var prefix = '';
     var str = hit._source['@timestamp'].replace('T', ' ')
       .replace(/\+.*/, '').gray + '  ';
     hit._source.host = align(hit._source.host, 16, 'center');
     switch(hit._source.message.charAt(0)) {
       case 'I':
+        prefix = 'I'.green;
         str += hit._source.host.green + '  ';
         break;
       case 'W':
+        prefix = 'W'.yellow;
         str += hit._source.host.yellow + '  ';
         break;
       case 'E':
+        prefix = 'E'.red;
         str += hit._source.host.red + '  ';
         break;
     }
 		context.from = hit._source['@timestamp'];
-    str += hit._source.message;
-    console.log(str);
+    str = prefix + '  ' + str +
+      hit._source.message.substring(1, hit._source.message.length);
+    outputBuffer.push(str);
   }
+  outputBuffer.print();
 }
 
 function doSearch() {
