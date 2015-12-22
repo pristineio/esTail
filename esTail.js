@@ -115,9 +115,20 @@ client.ping({requestTimeout: 5000}, function(error) {
 function printOutput(output) {
 	while(output.length > 0) {
     var hit = output.shift();
-		console.log(hit._source['@timestamp'].replace('T', ' ')
-      .replace(/\+.*/, '').green + '  ' + hit._source.host.yellow + '  ' +
-      hit._source.message);
+    var str = hit._source['@timestamp'].replace('T', ' ')
+      .replace(/\+.*/, '').gray + '  ';
+    switch(hit._source.message.charAt(0)) {
+      case 'I':
+        str += hit._source.host.green + '  ';
+        break;
+      case 'W':
+        str += hit._source.host.yellow + '  ';
+        break;
+      case 'E':
+        str += hit._source.host.red + '  ';
+        break;
+    }
+		console.log(str + hit._source.message);
 		context.from = hit._source['@timestamp'];
   }
 }
