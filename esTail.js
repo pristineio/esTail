@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
-
 var elasticsearch = require('elasticsearch');
+var align = require('string-align');
 var markupjs = require('markup-js');
 var fs = require('fs');
 var colour = require('colour');
@@ -117,6 +117,7 @@ function printOutput(output) {
     var hit = output.shift();
     var str = hit._source['@timestamp'].replace('T', ' ')
       .replace(/\+.*/, '').gray + '  ';
+    hit._source.host = align(hit._source.host, 16, 'center');
     switch(hit._source.message.charAt(0)) {
       case 'I':
         str += hit._source.host.green + '  ';
@@ -128,8 +129,9 @@ function printOutput(output) {
         str += hit._source.host.red + '  ';
         break;
     }
-		console.log(str + hit._source.message);
 		context.from = hit._source['@timestamp'];
+    str += hit._source.message;
+    console.log(str);
   }
 }
 
