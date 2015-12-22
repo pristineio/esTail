@@ -9,7 +9,6 @@ var moment = require('moment');
 var allfields;
 var regex;
 var regexflags = 'gm';
-var rawoutput;
 var searchDone = true;
 var hostportlist = 'efk.internal:9200';
 var refreshInterval = 1000;
@@ -17,17 +16,10 @@ var searchFilename=__dirname + '/default.search';
 var searchTemplate = '';
 var loglevel = 'error';
 
-
-var from = new Date(new Date() - 12*3600*1000 - 3000*60*1000)
-  .toISOString()
-  .replace('T', ' ')
-  .replace(/\.[0-9]{3}Z/, '');
-
-
 var context = {
   index: '_all',
-  from: new Date(new Date() - 5*refreshInterval).toISOString(), //'now-1m',
-  fetchsize: 300
+  from: new Date(new Date() - 3*refreshInterval).toISOString(), //'now-1m',
+  fetchsize: 50
 };
 
 process.argv.forEach(function(val, ind, array) {
@@ -35,10 +27,7 @@ process.argv.forEach(function(val, ind, array) {
     console.log(process.argv[0]+':');
     console.log('\t[--hostport = ' + hostportlist + ']');
     console.log('\t[--search=<filename> default: ' + searchFilename);
-    console.log('\t[--regex=\'([\d\.]+)\' default: none');
-    console.log('\t[--regexflags=\'gm\'   default: ' + regexflags);
     console.log('\t[--allfields         default: false ');
-    console.log('\t[--raw         	    default: false ');
     console.log('\t[--fetchsize=\'20\'  default: 100 ');
     console.log('\t[-i|--refreshInterval=\'1000\'  default: ' +
       refreshInterval);
@@ -62,22 +51,10 @@ process.argv.forEach(function(val, ind, array) {
   if(val === '--allfields' ) {
     allfields = true;
   }
-  if(val === '--raw') {
-    rawoutput = true;
-  }
   if(val.indexOf('=') > 0) {
     var s = val.split(/=/);
     if(s[0] === '--hostport') {
       hostportlist = s[1];
-    }
-    if(s[0] === '--regexflags') {
-      regexflags =  s[1];
-    }
-    if(s[0] === '--regex') {
-      regex = s[1];
-    }
-    if(s[0] === '--loglevel') {
-      loglevel = s[1];
     }
     if(s[0] === '--refreshinterval' || s[0] === '-i') {
       refreshInterval = s[1];
@@ -138,17 +115,9 @@ client.ping({requestTimeout: 5000}, function(error) {
 function printOutput(output) {
 	while(output.length > 0) {
     var hit = output.shift();
-		if(allfields) {
-			console.log(hit._source['@timestamp'].red + ':\n'.green +
-        JSON.stringify(hit._source));
-		} else {
-			if(rawoutput) {
-				console.log(JSON.stringify(hit, null, 2));
-			} else {
-				console.log(hit._source['@timestamp'].bold.green + ': ' +
-          hit._source.message);
-			}
-		}
+		console.log(hit._source['@timestamp'].replace('T', ' ')
+      .replace(/\+.*/, '').green + '  ' + hit._source.host.yellow + '  ' +
+      hit._source.message);
 		context.from = hit._source['@timestamp'];
   }
 }
