@@ -15,26 +15,41 @@ var refreshInterval = 1000;
 var searchFilename=__dirname + '/default.search';
 var searchTemplate = '';
 var loglevel = 'error';
+var padding = 0;
 
 function RingBuffer() {
   this.buffer = {};
-  this.maxLength = 50;
+  this.maxSize = 10;
+  this.printing = false;
 }
 
 RingBuffer.prototype.push = function(x) {
-  if(Object.keys(this.buffer).length >= this.maxLength) {
+  if(Object.keys(this.buffer).length >= this.maxSize) {
     delete this.buffer[Object.keys(this.buffer)[0]];
   }
-  if(!(x in this.buffer)) {
-    this.buffer[x] = true;
+  if(!(x.line in this.buffer)) {
+    this.buffer[x.line] = x;
   }
 };
 
 RingBuffer.prototype.print = function() {
-  Object.keys(this.buffer).forEach(function(x) {
-    console.log(x);
-  });
-  this.buffer = {};
+  var self = this;
+  var keys = Object.keys(this.buffer);
+  if(!self.printing && keys.length > 0) {
+    self.printing = true;
+    if(keys.length < 1) {
+      return;
+    }
+    keys.map(function(x) {
+      return self.buffer[x];
+    }).sort(function(a,b) {
+      return a.host <= b.host ? 1 : -1;
+    }).forEach(function(x) {
+      console.log(x.line);
+    });
+    this.buffer = {};
+    self.printing = false;
+  }
 };
 
 var outputBuffer = new RingBuffer();
@@ -142,7 +157,10 @@ function printOutput(output) {
     var prefix = '';
     var str = hit._source['@timestamp'].replace('T', ' ')
       .replace(/\+.*/, '').gray + '  ';
-    hit._source.host = align(hit._source.host, 16, 'center');
+
+    padding = Math.max(padding, hit._source.host.length);
+    hit._source.host = align(hit._source.host, padding, 'left');
+
     switch(hit._source.message.charAt(0)) {
       case 'I':
         prefix = 'I'.green;
@@ -160,7 +178,10 @@ function printOutput(output) {
 		context.from = hit._source['@timestamp'];
     str = prefix + '  ' + str +
       hit._source.message.substring(1, hit._source.message.length);
-    outputBuffer.push(str);
+    outputBuffer.push({
+      host: hit._source.host.trim(),
+      line: str.trim()
+    });
   }
   outputBuffer.print();
 }
@@ -175,7 +196,7 @@ function doSearch() {
     if(error) {
       // return console.error('E '.red + error.message);
     }
-    if(response.hits && response.hits.hits) {
+    if(response && response.hits && response.hits.hits) {
       printOutput(response.hits.hits);
       if(response.hits.hits.length >= response.hits.total) {
         searchDone = true;
@@ -183,7 +204,7 @@ function doSearch() {
       }
       client.scroll({
         scrollId: response._scroll_id,
-        scroll: '30s'
+        scroll: '2s'
       }, ph);
     }
   });
