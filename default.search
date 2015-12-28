@@ -9,7 +9,7 @@
         "must": [
           {
             "range": {
-              "@timestamp": {
+              "timestamp": {
                 "gt": "{{from}}",
                 "to": "now"
               }
@@ -36,7 +36,7 @@
             "constant_score": {
               "filter": {
                 "missing": {
-                  "field": "@timestamp"
+                  "field": "timestamp"
                 }
               }
             }
@@ -46,7 +46,7 @@
       }
     },
     "sort": [{
-      "@timestamp": {
+      "timestamp": {
         "order": "asc",
         "ignore_unmapped": true
       }
