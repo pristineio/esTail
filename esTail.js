@@ -155,7 +155,7 @@ function printOutput(output) {
 	while(output.length > 0) {
     var hit = output.shift();
     var prefix = '';
-    var str = hit._source['@timestamp'].replace('T', ' ')
+    var str = hit._source['timestamp'].replace('T', ' ')
       .replace(/\+.*/, '').gray + '  ';
 
     padding = Math.max(padding, hit._source.host.length);
@@ -175,7 +175,7 @@ function printOutput(output) {
         str += hit._source.host.red + '  ';
         break;
     }
-		context.from = hit._source['@timestamp'];
+		context.from = hit._source['timestamp'];
     str = prefix + '  ' + str +
       hit._source.message.substring(1, hit._source.message.length);
     outputBuffer.push({
@@ -215,4 +215,3 @@ setInterval(function() {
     doSearch();
   }
 }, refreshInterval);
-
