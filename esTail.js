@@ -11,7 +11,7 @@ var regex;
 var regexflags = 'gm';
 var searchDone = true;
 var hostportlist = 'efk.internal:9200';
-var refreshInterval = 5000;
+var refreshInterval = 1000;
 var searchFilename=__dirname + '/default.search';
 var searchTemplate = '';
 var loglevel = 'error';
@@ -19,8 +19,7 @@ var padding = 0;
 
 function RingBuffer() {
   this.buffer = {};
-  this.maxSize = 10;
-  this.printing = false;
+  this.maxSize = 50;
 }
 
 RingBuffer.prototype.push = function(x) {
@@ -35,8 +34,7 @@ RingBuffer.prototype.push = function(x) {
 RingBuffer.prototype.print = function() {
   var self = this;
   var keys = Object.keys(this.buffer);
-  if(!self.printing && keys.length > 0) {
-    self.printing = true;
+  if(keys.length > 0) {
     if(keys.length < 1) {
       return;
     }
@@ -45,10 +43,11 @@ RingBuffer.prototype.print = function() {
     }).sort(function(a,b) {
       return a.host <= b.host ? 1 : -1;
     }).forEach(function(x) {
-      console.log(x.line);
+      if(!x.printed) {
+        console.log(x.line);
+      }
+      x.printed = true;
     });
-    this.buffer = {};
-    self.printing = false;
   }
 };
 
@@ -155,7 +154,7 @@ function printOutput(output) {
 	while(output.length > 0) {
     var hit = output.shift();
     var prefix = '';
-    var str = hit._source['timestamp'].replace('T', ' ')
+    var str = hit._source.timestamp.replace('T', ' ')
       .replace(/\+.*/, '').gray + '  ';
 
     padding = Math.max(padding, hit._source.host.length);
@@ -175,7 +174,7 @@ function printOutput(output) {
         str += hit._source.host.red + '  ';
         break;
     }
-		context.from = hit._source['timestamp'];
+		context.from = hit._source.timestamp;
     str = prefix + '  ' + str +
       hit._source.message.substring(1, hit._source.message.length);
     outputBuffer.push({
@@ -197,8 +196,8 @@ function doSearch() {
       // return console.error('E '.red + error.message);
     }
     if(response && response.hits && response.hits.hits) {
-      printOutput(response.hits.hits);
       if(response.hits.hits.length >= response.hits.total) {
+        printOutput(response.hits.hits);
         searchDone = true;
         return;
       }
