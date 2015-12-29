@@ -11,7 +11,7 @@ var regex;
 var regexflags = 'gm';
 var searchDone = true;
 var hostportlist = 'efk.internal:9200';
-var refreshInterval = 1000;
+var refreshInterval = 5000;
 var searchFilename=__dirname + '/default.search';
 var searchTemplate = '';
 var loglevel = 'error';

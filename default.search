@@ -47,7 +47,7 @@
     },
     "sort": [{
       "timestamp": {
-        "order": "asc",
+        "order": "desc",
         "ignore_unmapped": true
       }
     }]
