@@ -12,22 +12,31 @@ var regexflags = 'gm';
 var searchDone = true;
 var hostportlist = 'efk.internal:9200';
 var refreshInterval = 1000;
-var searchFilename=__dirname + '/default.search';
+var searchFilename = __dirname + '/default.search';
 var searchTemplate = '';
 var loglevel = 'error';
 var padding = 0;
 
 function RingBuffer() {
   this.buffer = {};
-  this.maxSize = 50;
+  this.maxSize = 100;
 }
 
+var colors = ['cyan', 'magenta', 'yellow', 'blue', 'red', 'green', 'white'];
+var hostColorIndex = 0;
+var hostColors = {};
+
 RingBuffer.prototype.push = function(x) {
-  if(Object.keys(this.buffer).length >= this.maxSize) {
-    delete this.buffer[Object.keys(this.buffer)[0]];
+  var keys = Object.keys(this.buffer);
+  if(keys.length >= this.maxSize) {
+    delete this.buffer[keys[0]];
   }
   if(!(x.line in this.buffer)) {
-    this.buffer[x.line] = x;
+    this.buffer[x.line] = {
+      line: x.line,
+      host: x.host,
+      printed: false
+    };
   }
 };
 
@@ -40,10 +49,9 @@ RingBuffer.prototype.print = function() {
     }
     keys.map(function(x) {
       return self.buffer[x];
-    }).sort(function(a,b) {
-      return a.host <= b.host ? 1 : -1;
     }).forEach(function(x) {
       if(!x.printed) {
+        x.line = x.line.replace(x.host, x.host[hostColors[x.host]]);
         console.log(x.line);
       }
       x.printed = true;
@@ -52,7 +60,6 @@ RingBuffer.prototype.print = function() {
 };
 
 var outputBuffer = new RingBuffer();
-
 
 var context = {
   index: '_all',
@@ -177,7 +184,16 @@ function printOutput(output) {
 		context.from = hit._source.timestamp;
     str = prefix + '  ' + str +
       hit._source.message.substring(1, hit._source.message.length);
+
+    if(!(hit._source.host.trim() in hostColors)) {
+      hostColors[hit._source.host.trim()] = colors[hostColorIndex];
+      if(++hostColorIndex > colors.length) {
+        hostColorIndex = 0;
+      }
+    }
+
     outputBuffer.push({
+      ts: hit.sort.pop(),
       host: hit._source.host.trim(),
       line: str.trim()
     });
