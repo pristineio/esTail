@@ -187,9 +187,7 @@ function printOutput(output) {
 
     if(!(hit._source.host.trim() in hostColors)) {
       hostColors[hit._source.host.trim()] = colors[hostColorIndex];
-      if(++hostColorIndex > colors.length) {
-        hostColorIndex = 0;
-      }
+      hostColorIndex = hostColorIndex+1 % colors.length;
     }
 
     outputBuffer.push({
