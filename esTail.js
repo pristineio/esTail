@@ -134,10 +134,10 @@ process.argv.forEach(function(val, ind, array) {
 
 regex = new RegExp(regex, regexflags);
 if(fs.existsSync(searchFilename)) {
-	var searchTemplate = fs.readFileSync(searchFilename, 'utf8');
+  var searchTemplate = fs.readFileSync(searchFilename, 'utf8');
 } else {
-	console.error('file does not exist:' + searchFilename);
-	process.exit(2);
+  console.error('file does not exist:' + searchFilename);
+  process.exit(2);
 }
 
 var client = new elasticsearch.Client({
@@ -156,7 +156,7 @@ client.ping({requestTimeout: 5000}, function(error) {
 });
 
 function printOutput(output) {
-	while(output.length > 0) {
+  while(output.length > 0) {
     var hit = output.shift();
     var prefix = '';
     var str = hit._source.timestamp.replace('T', ' ')
@@ -179,7 +179,7 @@ function printOutput(output) {
         str += hit._source.host.red + '  ';
         break;
     }
-		context.from = hit._source.timestamp;
+    context.from = hit._source.timestamp;
     str = prefix + '  ' + str +
       hit._source.message.substring(1, hit._source.message.length);
 
@@ -203,8 +203,8 @@ function doSearch() {
   }
 
   context.index = dynamicIndex();
-	var search = markupjs.up(searchTemplate, context);
-	client.search(JSON.parse(search), function(error, response) {
+  var search = markupjs.up(searchTemplate, context);
+  client.search(JSON.parse(search), function(error, response) {
     if(error) {
       // return console.error('E '.red + error.message);
     }
