@@ -19,12 +19,21 @@ var padding = 0;
 
 function RingBuffer() {
   this.buffer = {};
-  this.maxSize = 100;
+  this.maxSize = 10000;
 }
 
 var colors = ['cyan', 'magenta', 'yellow', 'blue', 'red', 'green', 'white'];
 var hostColorIndex = 0;
 var hostColors = {};
+
+function zeroPad(value) {
+  return (value.toString().length < 2) ? '0' + value : value;
+}
+
+function dynamicIndex() {
+  var date = new Date();
+  return 'logstash-' + date.getUTCFullYear() + '.' + zeroPad(date.getUTCMonth() + 1) + '.' + zeroPad(date.getUTCDate());
+}
 
 RingBuffer.prototype.push = function(x) {
   var keys = Object.keys(this.buffer);
@@ -62,9 +71,9 @@ RingBuffer.prototype.print = function() {
 var outputBuffer = new RingBuffer();
 
 var context = {
-  index: '_all',
-  from: new Date(new Date() - 3*refreshInterval).toISOString(), //'now-1m',
-  fetchsize: 50
+  index: dynamicIndex(),
+  from: new Date(new Date() - (3 * refreshInterval)).toISOString(),
+  fetchsize: 10000
 };
 
 process.argv.forEach(function(val, ind, array) {
@@ -84,10 +93,6 @@ process.argv.forEach(function(val, ind, array) {
     console.log(['\t\t\tcontext=<key>=<val> is a way to set any varable',
       'inside the context array. Make sure this is used after --contextfile',
       'or --context=<customejson>'].join(' '));
-    console.log('\t[--index=<index>|--context = index=<index>     default: ' +
-      context.index);
-    console.log('\t[--from=<datestamp>|--context = from=\'now-5m\'  default: ' +
-      context.from);
     console.log(['\t\t\tfrom can be of any valid Elasticsearch timevalue',
       'or Caclulation'].join(' '));
     process.exit(1);
@@ -124,9 +129,6 @@ process.argv.forEach(function(val, ind, array) {
     if(s[0] === '--search') {
       searchFilename = s[1];
     }
-    if(s[0] === '--index') {
-      context.index = s[1];
-    }
   }
 });
 
@@ -141,13 +143,9 @@ if(fs.existsSync(searchFilename)) {
 var client = new elasticsearch.Client({
   host: hostportlist,
   protocol: 'http',
-  index: context.index,
   keepAlive: true,
   ignore: [404],
-  log: loglevel,
-  suggestCompression: true,
-  sniffOnStart: true,
-  sniffInterval: 60000
+  log: loglevel
 });
 
 client.ping({requestTimeout: 5000}, function(error) {
@@ -203,9 +201,10 @@ function doSearch() {
   if(!searchDone) {
     return console.log('Search Not Complete');
   }
+
+  context.index = dynamicIndex();
 	var search = markupjs.up(searchTemplate, context);
-  var ph;
-	client.search(JSON.parse(search), ph = function(error, response) {
+	client.search(JSON.parse(search), function(error, response) {
     if(error) {
       // return console.error('E '.red + error.message);
     }
@@ -213,13 +212,9 @@ function doSearch() {
       if(response.hits.hits.length >= response.hits.total) {
         printOutput(response.hits.hits);
         searchDone = true;
-        return;
       }
-      client.scroll({
-        scrollId: response._scroll_id,
-        scroll: '2s'
-      }, ph);
     }
+    return;
   });
 }
 
