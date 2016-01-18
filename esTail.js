@@ -32,7 +32,8 @@ function zeroPad(value) {
 
 function dynamicIndex() {
   var date = new Date();
-  return 'logstash-' + date.getUTCFullYear() + '.' + zeroPad(date.getUTCMonth() + 1) + '.' + zeroPad(date.getUTCDate());
+  return 'logstash-' + date.getUTCFullYear() + '.' +
+    zeroPad(date.getUTCMonth() + 1) + '.' + zeroPad(date.getUTCDate());
 }
 
 RingBuffer.prototype.push = function(x) {
