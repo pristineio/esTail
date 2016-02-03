@@ -73,7 +73,7 @@ var outputBuffer = new RingBuffer();
 
 var context = {
   index: dynamicIndex(),
-  from: new Date(new Date() - (3 * refreshInterval)).toISOString(),
+  from: new Date(new Date() - (30 * refreshInterval)).toISOString(),
   fetchsize: 10000
 };
 
@@ -207,7 +207,7 @@ function doSearch() {
   var search = markupjs.up(searchTemplate, context);
   client.search(JSON.parse(search), function(error, response) {
     if(error) {
-      // return console.error('E '.red + error.message);
+      return console.error('E '.red + error.message);
     }
     if(response && response.hits && response.hits.hits) {
       if(response.hits.hits.length >= response.hits.total) {
